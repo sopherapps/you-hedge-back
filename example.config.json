@@ -1,0 +1,5 @@
+{
+  "GOOGLE_CLIENT_ID": "<Google client id as obtained using the steps from https://developers.google.com/identity/gsi/web/guides/devices>",
+  "GOOGLE_CLIENT_SECRET": "<Google client secret as obtained using the steps from https://developers.google.com/identity/gsi/web/guides/devices>",
+  "GOOGLE_API_KEY": "<Google API Key as obtained using the steps from https://developers.google.com/youtube/v3/getting-started>"
+}
