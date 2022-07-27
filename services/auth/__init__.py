@@ -1,5 +1,9 @@
 """Service for handling logins"""
-from flask import Blueprint, request
+from flask import Blueprint, request, current_app
+
+from utils.view_utils import body_required
+from . import client
+from .dtos import RefreshTokenRequest
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -10,7 +14,8 @@ def tv_login():
     Initializes logging in via TV, returning a verification link
     and a User code for user to login with
     """
-    pass
+    response = client.initialize_tv_login()
+    return response.jsonify(current_app)
 
 
 @bp.get("/tv/<string:device_id>")
@@ -22,16 +27,15 @@ def check_tv_login_status(device_id: str):
     passed as a query parameter to see the status of the login request
     """
     interval: int = request.args.get("interval", 5, int)
-    pass
+    response = client.check_tv_login_status(device_id=device_id, interval=interval)
+    return response.jsonify(current_app)
 
 
 @bp.post("/refresh-token")
-def refresh_token():
+@body_required(RefreshTokenRequest)
+def refresh_token(body: RefreshTokenRequest):
     """
     Refreshes the token associated with the passed refresh_token and responds with a new token
-    Body: RefreshTokenRequest
-    Response: RefreshTokenResponse
-    :return:
     """
-    pass
-
+    response = client.refresh_access_token(body)
+    return response.jsonify(current_app)

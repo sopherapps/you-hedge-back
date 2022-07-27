@@ -38,10 +38,15 @@ source env/bin/activate # for unix
 pip install -r requirements.txt
 ```
 
-- Start the application
+- Start the uwsgi application
 
 ```shell
-python main.py
+uwsgi --master \
+  --workers 4 \
+  --gevent 2000 \
+  --protocol http \
+  --socket 0.0.0.0:8000 \
+  --module main:app
 ```
 
 - Open your browser at [http://localhost:8000](http://localhost:8000)
