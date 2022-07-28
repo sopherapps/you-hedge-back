@@ -51,8 +51,20 @@ def get_channel_details(
 
 def get_playlist_items(
         playlist_id: str,
+        api_key: str,
         access_token: str,
         next_page_token: Optional[str] = None,
         prev_page_token: Optional[str] = None) -> PlaylistItemListResponse:
     """Gets the items in the playlist of the given playlist id"""
-    raise NotImplementedError("implement this")
+    headers = {"Accept": "application/json", "Authorization": f"Bearer {access_token}"}
+    url = f"https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId={playlist_id}&key={api_key}"
+    page_token = next_page_token or prev_page_token
+
+    if page_token is not None:
+        url = f"{url}&pageToken={page_token}"
+
+    response = requests.get(url, headers=headers)
+    if not response.ok:
+        raise APIException(message="unknown internal error", status_code=500)
+
+    return PlaylistItemListResponse.validate(response.json())

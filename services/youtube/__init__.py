@@ -48,6 +48,7 @@ def get_playlist_videos(playlist_id: str, access_token: str):
     prev_page_token = request.args.get("prevPageToken", None)
     response = client.get_playlist_items(
         playlist_id=playlist_id,
+        api_key=current_app.config["GOOGLE_API_KEY"],
         access_token=access_token,
         next_page_token=next_page_token,
         prev_page_token=prev_page_token)
