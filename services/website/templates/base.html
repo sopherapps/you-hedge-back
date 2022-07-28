@@ -7,6 +7,8 @@
     <title>{% block title %}{% endblock%}</title>
     <meta name="description"
           content="YouHedge helps you dodge the NewsFeed of YouTube and get only what you subscribe to"/>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
 
     <!--Google fonts-->
     <link href="https://fonts.googleapis.com/css?family=Arimo:400,400i,700,700i" rel="stylesheet">
@@ -17,9 +19,6 @@
     <!-- Bootstrap CSS / Color Scheme -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/red.css') }}" id="theme-color">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.png') }}">
 </head>
 <body>
 {% block content %}{% endblock %}
