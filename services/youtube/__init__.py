@@ -30,6 +30,7 @@ def get_channel_details(channel_id: str, access_token: str):
     prev_page_token = request.args.get("prevPageToken", None)
     response = client.get_channel_details(
         channel_id=channel_id,
+        api_key=current_app.config["GOOGLE_API_KEY"],
         access_token=access_token,
         next_page_token=next_page_token,
         prev_page_token=prev_page_token)

@@ -28,7 +28,7 @@ class ChannelSnippet(BaseDto):
 
 
 class ChannelContentDetails(BaseDto):
-    relatedPlaylist: PlayListDetails
+    relatedPlaylists: PlayListDetails
 
 
 class ChannelDetails(BaseDto):
