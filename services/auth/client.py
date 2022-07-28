@@ -23,7 +23,7 @@ def initialize_tv_login(client_id) -> LoginDetails:
     }
     response = requests.post(url, data=data, headers=headers)
     if not response.ok:
-        raise APIException(message="unknown internal error", status_code=500)
+        raise APIException(message="unknown internal error", status_code=500, payload=response.json())
 
     return LoginDetails.validate(response.json())
 
@@ -64,10 +64,10 @@ def check_tv_login_status(
                 elif error == 'authorization_pending':
                     time.sleep(interval)
                 else:
-                    raise APIException(message="unknown internal error", status_code=500)
+                    raise APIException(message="unknown internal error", status_code=500, payload=parsed_data)
 
-            except requests.exceptions.JSONDecodeError:
-                raise APIException(message="unexpected internal error", status_code=500)
+            except requests.exceptions.JSONDecodeError as exp:
+                raise APIException(message="unexpected internal error", status_code=500, payload=exp)
 
     raise APIException(message="timeout error", status_code=HTTPStatus.REQUEST_TIMEOUT)
 
@@ -91,6 +91,6 @@ def refresh_access_token(
 
     response = requests.post(url, data=data, headers=headers)
     if not response.ok:
-        raise APIException(message="unknown internal error", status_code=500)
+        raise APIException(message="unknown internal error", status_code=500, payload=response.json())
 
     return RefreshTokenResponse.validate(response.json())

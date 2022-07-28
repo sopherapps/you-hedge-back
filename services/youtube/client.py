@@ -19,7 +19,7 @@ def get_subscriptions(
 
     response = requests.get(url, headers=headers)
     if not response.ok:
-        raise APIException(message=f"unknown internal error", status_code=500)
+        raise APIException(message=f"unknown internal error", status_code=500, payload=response.json())
 
     return SubscriptionListResponse.validate(response.json())
 
@@ -37,7 +37,7 @@ def get_channel_details(
 
     response = requests.get(url, headers=headers)
     if not response.ok:
-        raise APIException(message="unknown internal error", status_code=500)
+        raise APIException(message="unknown internal error", status_code=500, payload=response.json())
 
     parsed_response = ChannelDetailsResponse.validate(response.json())
     return parsed_response.items[0]
@@ -56,6 +56,6 @@ def get_playlist_items(
 
     response = requests.get(url, headers=headers)
     if not response.ok:
-        raise APIException(message="unknown internal error", status_code=500)
+        raise APIException(message="unknown internal error", status_code=500, payload=response.json())
 
     return PlaylistItemListResponse.validate(response.json())

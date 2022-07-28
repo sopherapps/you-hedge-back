@@ -5,7 +5,7 @@ from unittest.mock import patch, MagicMock, call
 from services import create_app
 from utils.testing import MockResponse
 
-_app = create_app(config_filename="test.config.json")
+_app = create_app(config_filename="test.config.json", should_log_to_file=False)
 
 
 class TestAuth(TestCase):

@@ -7,7 +7,7 @@ from services import create_app
 from services.youtube.dtos import SubscriptionListResponse, ChannelDetails, PlaylistItemListResponse
 from utils.testing import MockResponse
 
-_app = create_app(config_filename="test.config.json")
+_app = create_app(config_filename="test.config.json", should_log_to_file=False)
 
 
 class TestYoutube(TestCase):
