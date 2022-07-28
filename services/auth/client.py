@@ -71,16 +71,25 @@ def check_tv_login_status(
     raise APIException(message="timeout error", status_code=HTTPStatus.REQUEST_TIMEOUT)
 
 
-
-
-
-
-
-
-
-def refresh_access_token(request: RefreshTokenRequest) -> RefreshTokenResponse:
+def refresh_access_token(
+        request: RefreshTokenRequest,
+        client_id: str,
+        client_secret: str) -> RefreshTokenResponse:
     """
     Refreshes the access token associated with the refresh token provided and returns the new acces token
     details
     """
-    raise NotImplementedError("todo")
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    url = "https://oauth2.googleapis.com/token"
+    data = {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "refresh_token": request.refresh_token,
+        "grant_type": "refresh_token"
+    }
+
+    response = requests.post(url, data=data, headers=headers)
+    if not response.ok:
+        raise APIException(message="unknown internal error", status_code=500)
+
+    return RefreshTokenResponse.validate(response.json())

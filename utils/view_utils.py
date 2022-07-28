@@ -27,13 +27,11 @@ def body_required(request_model: Type[BaseDto]):
     def wrapped_view(view):
         @functools.wraps(view)
         def inner_view(**kwargs):
-            body = request.json()
             try:
-                body = request_model.validate(body)
+                body = request_model.validate(request.json)
+                return view(**kwargs, body=body)
             except ValidationError:
                 raise APIException(message="malformed body", status_code=400)
-
-            return view(**kwargs, body=body)
 
         return inner_view
 

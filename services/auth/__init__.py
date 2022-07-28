@@ -44,5 +44,8 @@ def refresh_token(body: RefreshTokenRequest):
     """
     Refreshes the token associated with the passed refresh_token and responds with a new token
     """
-    response = client.refresh_access_token(body)
+    response = client.refresh_access_token(
+        request=body,
+        client_id=current_app.config["GOOGLE_CLIENT_ID"],
+        client_secret=current_app.config["GOOGLE_CLIENT_SECRET"], )
     return response.jsonify(current_app)
