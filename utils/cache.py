@@ -1,43 +1,30 @@
 """Module containing utilities to cache requests basing on headers, url and data"""
-
-import hashlib
 from datetime import datetime, timedelta
+from io import BytesIO
 from typing import Dict, Any, Tuple, Optional
 
 from flask import request, Request, has_request_context, Response
 
 
-class ChecksumCalcStream(object):
+def get_req_id(req: Request) -> str:
     """
-    Computes a SHA1 hash as the request stream is being consumed.
-    It should thus be initialized before the request stream is accessed e.g. via request.headers
-    This hash will help us decide whether the given request exists in the cache or not
+    returns a request id constructed from the url, method, query params, headers and body
     """
-
-    def __init__(self, stream):
-        self._stream = stream
-        self._hash = hashlib.sha1()
-
-    def read(self, byte_data):
-        rv = self._stream.read(byte_data)
-        self._hash.update(rv)
-        return rv
-
-    def readline(self, size_hint):
-        rv = self._stream.readline(size_hint)
-        self._hash.update(rv)
-        return rv
+    body = read_request_body_without_consuming_it(req)
+    return f"{req.url}{req.query_string}{req.method}{body}{req.headers}"
 
 
-def get_checksum(req: Request):
+def read_request_body_without_consuming_it(req: Request) -> bytes:
     """
-    Initializes the checksum generator for a given request if it has not yet been initialized
-    and returns it
+    Reads the body of a request without consuming it so that future calls to request.data
+    don't get surprised at any empty string
     """
-    env = request.environ
-    stream = ChecksumCalcStream(env['wsgi.input'])
-    env['wsgi.input'] = stream
-    return stream._hash
+    length = int(req.environ.get('CONTENT_LENGTH') or 0)
+    body = req.environ['wsgi.input'].read(length)
+    req.environ['body_copy'] = body
+    # replace the stream since it was exhausted by read()
+    req.environ['wsgi.input'] = BytesIO(body)
+    return req.environ['body_copy']
 
 
 class Cache:
@@ -69,17 +56,14 @@ class Cache:
     def get_view(self, view, *args, **kwargs):
         """Gets the cached response of the view if it exists"""
         if has_request_context():
-            checksum = get_checksum(request)
-            # read the stream so that the checksum is completed
-            _ = request.data
-            key = checksum.hexdigest()
-            value = self[key]
+            request_id = get_req_id(request)
+            value = self[request_id]
 
             if value is None:
                 value: Response = view(*args, **kwargs)
                 if value.status_code < 400:
                     # save only successful requests
-                    self[key] = value
+                    self[request_id] = value
 
             return value
 

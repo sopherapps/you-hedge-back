@@ -99,6 +99,7 @@ class TestYoutube(TestCase):
     def test_cached_get_subscriptions(self, mock_get: MagicMock):
         """Should return the cached response as long as TTL is not exceeded"""
         access_token = "some dummy stuff"
+        other_access_token = "wooohooo"
         first_mock_response = {
             "kind": "youtube#SubscriptionListResponse",
             "etag": "Oqgkyuuyyb",
@@ -173,9 +174,10 @@ class TestYoutube(TestCase):
                 },
             ],
         }
-        expected_second_response = SubscriptionListResponse(**first_mock_response).dict(exclude_unset=True)
-        expected_third_response = SubscriptionListResponse(**second_mock_response).dict(exclude_unset=True)
+        expected_old_response = SubscriptionListResponse(**first_mock_response).dict(exclude_unset=True)
+        expected_updated_response = SubscriptionListResponse(**second_mock_response).dict(exclude_unset=True)
         expected_headers = {"Accept": "application/json", "Authorization": f"Bearer {access_token}"}
+        other_headers = {"Accept": "application/json", "Authorization": f"Bearer {other_access_token}"}
         expected_url = "https://youtube.googleapis.com/youtube/v3/subscriptions?part=snippet&mine=true&key=TEST_GOOGLE_API_KEY"
 
         mock_get.return_value = MockResponse(data=first_mock_response, status_code=200)
@@ -183,21 +185,31 @@ class TestYoutube(TestCase):
 
         # change the mock response
         mock_get.return_value = MockResponse(data=second_mock_response, status_code=200)
-        second_response = self.client.get("/youtube/subscriptions", headers={"X-YouHedge-Token": access_token})
+
+        # change headers and thus skip the cache
+        new_headers_response = self.client.get("/youtube/subscriptions",
+                                               headers={"X-YouHedge-Token": other_access_token})
+
+        # use old headers and thus hit the cache
+        old_headers_response = self.client.get("/youtube/subscriptions", headers={"X-YouHedge-Token": access_token})
 
         # wait for TTL to elapse and try the query again
         time.sleep(3)
-        third_response = self.client.get("/youtube/subscriptions", headers={"X-YouHedge-Token": access_token})
+        old_headers_after_sleep_response = self.client.get("/youtube/subscriptions",
+                                                           headers={"X-YouHedge-Token": access_token})
 
         calls = [
             call(expected_url, headers=expected_headers),
+            call(expected_url, headers=other_headers),
             call(expected_url, headers=expected_headers),
         ]
         mock_get.assert_has_calls(calls=calls)
-        self.assertEqual(200, second_response.status_code)
-        self.assertEqual(200, third_response.status_code)
-        self.assertEqual(expected_second_response, second_response.json)
-        self.assertEqual(expected_third_response, third_response.json)
+        self.assertEqual(200, old_headers_response.status_code)
+        self.assertEqual(200, new_headers_response.status_code)
+        self.assertEqual(200, old_headers_after_sleep_response.status_code)
+        self.assertEqual(expected_updated_response, new_headers_response.json)
+        self.assertEqual(expected_old_response, old_headers_response.json)
+        self.assertEqual(expected_updated_response, old_headers_after_sleep_response.json)
 
     @patch("requests.get")
     def test_get_channel_details(self, mock_get: MagicMock):
