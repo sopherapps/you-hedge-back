@@ -34,7 +34,7 @@ def get_channel_details(channel_id: str, access_token: str):
     return response.jsonify(current_app)
 
 
-@bp.get("/playlists/<string:playlist_id>/videos")
+@bp.get("/playlist-items/<string:playlist_id>")
 @auth_token_required
 def get_playlist_videos(playlist_id: str, access_token: str):
     """

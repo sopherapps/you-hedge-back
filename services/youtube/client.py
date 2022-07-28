@@ -1,7 +1,7 @@
 """Module containing the client code for YouTube data v3 API"""
 from typing import Optional, List
 
-from .dtos import SubscriptionListResponse, ChannelDetailsResponse, PlaylistItemListResponse
+from .dtos import SubscriptionListResponse, ChannelDetailsResponse, PlaylistItemListResponse, ChannelDetails
 
 
 def get_subscriptions(
@@ -16,7 +16,7 @@ def get_channel_details(
         channel_id: str,
         access_token: str,
         next_page_token: Optional[str] = None,
-        prev_page_token: Optional[str] = None) -> ChannelDetailsResponse:
+        prev_page_token: Optional[str] = None) -> ChannelDetails:
     """Gets the details of the channel of the given channel id"""
     raise NotImplementedError("implement this")
 
