@@ -275,6 +275,146 @@ class TestYoutube(TestCase):
         self.assertEqual(expected_response, response.json)
 
     @patch("requests.get")
+    def test_cached_get_channel_details(self, mock_get: MagicMock):
+        """Should return the ChannelDetailsResponse response after querying the YouTube data v3 endpoint"""
+        access_token = "some dummy stuff"
+        other_access_token = "wooohooo"
+        channel_id = "a random channel id"
+        other_channel_id = "a random chaner id"
+        first_mock_response = {
+            "kind": "youtube#channelListResponse",
+            "etag": "syudsabka",
+            "pageInfo": {
+                "totalResults": 1,
+                "resultsPerPage": 5
+            },
+            "items": [
+                {
+                    "kind": "youtube#channel",
+                    "etag": "ayuahkjhada",
+                    "id": "a random channel id",
+                    "snippet": {
+                        "title": "Yoooo Mahn",
+                        "description": "",
+                        "publishedAt": "2018-03-07T12:17:06Z",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://yt3.ggpht.com/ytc/gha",
+                                "width": 88,
+                                "height": 88
+                            },
+                            "medium": {
+                                "url": "https://yt3.ggpht.com/ytc/ayu",
+                                "width": 240,
+                                "height": 240
+                            },
+                            "high": {
+                                "url": "https://yt3.ggpht.com/ytc/ryt",
+                                "width": 800,
+                                "height": 800
+                            }
+                        },
+                        "localized": {
+                            "title": "Yooo Mahn",
+                            "description": ""
+                        }
+                    },
+                    "contentDetails": {
+                        "relatedPlaylists": {
+                            "likes": "",
+                            "uploads": "eyuryejhhrje"
+                        }
+                    }
+                }
+            ]
+        }
+        second_mock_response = {
+            "kind": "youtube#channelListResponse",
+            "etag": "ajkhda",
+            "pageInfo": {
+                "totalResults": 1,
+                "resultsPerPage": 5
+            },
+            "items": [
+                {
+                    "kind": "youtube#channel",
+                    "etag": "kajdkasa",
+                    "id": "a random fr id",
+                    "snippet": {
+                        "title": "akyeiwiw",
+                        "description": "",
+                        "publishedAt": "2018-03-07T12:17:06Zt",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://yt3.ggpht.com/ytc/gha",
+                                "width": 88,
+                                "height": 88
+                            },
+                            "medium": {
+                                "url": "https://yt3.ggpht.com/ytc/ayu",
+                                "width": 240,
+                                "height": 240
+                            },
+                            "high": {
+                                "url": "https://yt3.ggpht.com/ytc/ryt",
+                                "width": 800,
+                                "height": 800
+                            }
+                        },
+                        "localized": {
+                            "title": "Yoogtt",
+                            "description": ""
+                        }
+                    },
+                    "contentDetails": {
+                        "relatedPlaylists": {
+                            "likes": "",
+                            "uploads": "akjjal"
+                        }
+                    }
+                }
+            ]
+        }
+        expected_old_response = ChannelDetails(**first_mock_response["items"][0]).dict(exclude_unset=True)
+        expected_updated_response = ChannelDetails(**second_mock_response["items"][0]).dict(exclude_unset=True)
+        expected_headers = {"Accept": "application/json", "Authorization": f"Bearer {access_token}"}
+        expected_updated_headers = {"Accept": "application/json", "Authorization": f"Bearer {other_access_token}"}
+        expected_updated_headers = {"Accept": "application/json", "Authorization": f"Bearer {other_access_token}"}
+        expected_url = f"https://youtube.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails&id={channel_id}&key=TEST_GOOGLE_API_KEY"
+        expected_updated_url = f"https://youtube.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails&id={other_channel_id}&key=TEST_GOOGLE_API_KEY"
+
+        mock_get.return_value = MockResponse(data=first_mock_response, status_code=200)
+        self.client.get(f"/youtube/channels/{channel_id}", headers={"X-YouHedge-Token": access_token})
+
+        # change the mock response
+        mock_get.return_value = MockResponse(data=second_mock_response, status_code=200)
+
+        # change headers and channel id and thus skip the cache
+        new_headers_response = self.client.get(f"/youtube/channels/{other_channel_id}",
+                                               headers={"X-YouHedge-Token": other_access_token})
+
+        # use old headers and thus hit the cache
+        old_headers_response = self.client.get(f"/youtube/channels/{channel_id}",
+                                               headers={"X-YouHedge-Token": access_token})
+
+        # wait for TTL to elapse and try the query again
+        time.sleep(3)
+        old_headers_after_sleep_response = self.client.get(f"/youtube/channels/{channel_id}",
+                                                           headers={"X-YouHedge-Token": access_token})
+        calls = [
+            call(expected_url, headers=expected_headers),
+            call(expected_updated_url, headers=expected_updated_headers),
+            call(expected_url, headers=expected_headers),
+        ]
+        mock_get.assert_has_calls(calls=calls)
+        self.assertEqual(200, old_headers_response.status_code)
+        self.assertEqual(200, new_headers_response.status_code)
+        self.assertEqual(200, old_headers_after_sleep_response.status_code)
+        self.assertEqual(expected_updated_response, new_headers_response.json)
+        self.assertEqual(expected_old_response, old_headers_response.json)
+        self.assertEqual(expected_updated_response, old_headers_after_sleep_response.json)
+
+    @patch("requests.get")
     def test_get_playlist_videos(self, mock_get: MagicMock):
         """Should return the PlaylistItemListResponse response after querying the YouTube data v3 endpoint"""
         access_token = "some dummy stuff"
