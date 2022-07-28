@@ -4,6 +4,7 @@ from unittest import TestCase, main
 from unittest.mock import patch, MagicMock
 
 from services import create_app
+from services.youtube.dtos import SubscriptionListResponse
 from utils.testing import MockResponse
 
 _app = create_app(config_filename="test.config.json")
@@ -83,6 +84,7 @@ class TestYoutube(TestCase):
                 },
             ],
         }
+        expected_response = SubscriptionListResponse(**mock_response).dict(exclude_unset=True)
         expected_headers = {"Accept": "application/json", "Authorization": f"Bearer {access_token}"}
         expected_url = "https://youtube.googleapis.com/youtube/v3/subscriptions?part=snippet&mine=true&key=TEST_GOOGLE_API_KEY"
 
@@ -91,7 +93,7 @@ class TestYoutube(TestCase):
         response = self.client.get("/youtube/subscriptions", headers={"X-YouHedge-Token": access_token})
         mock_get.assert_called_with(expected_url, headers=expected_headers)
         self.assertEqual(200, response.status_code)
-        self.assertEqual(mock_response, response.json)
+        self.assertEqual(expected_response, response.json)
 
     @patch("requests.get")
     def test_get_channel_details(self, mock_get: MagicMock):

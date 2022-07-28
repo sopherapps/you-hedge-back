@@ -15,8 +15,10 @@ def get_subscriptions(access_token: str):
     prev_page_token = request.args.get("prevPageToken", None)
     response = client.get_subscriptions(
         access_token=access_token,
+        api_key=current_app.config["GOOGLE_API_KEY"],
         next_page_token=next_page_token,
-        prev_page_token=prev_page_token)
+        prev_page_token=prev_page_token,
+    )
     return response.jsonify(current_app)
 
 

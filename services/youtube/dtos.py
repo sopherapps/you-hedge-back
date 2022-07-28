@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import List, Optional, Any
 
 from utils.base_dto import BaseDto
@@ -18,22 +17,14 @@ class ThumbnailDetails(BaseDto):
     maxres: Optional[Thumbnail] = None
 
 
-class LocalizedChannelDetails(BaseDto):
-    title: str
-    description: str
-
-
 class PlayListDetails(BaseDto):
-    likes: str
-    uploads: str
+    uploads: Optional[str] = None
 
 
 class ChannelSnippet(BaseDto):
     title: str
     description: str
-    publishedAt: datetime
     thumbnails: ThumbnailDetails
-    localized: LocalizedChannelDetails
 
 
 class ChannelContentDetails(BaseDto):
@@ -41,61 +32,45 @@ class ChannelContentDetails(BaseDto):
 
 
 class ChannelDetails(BaseDto):
-    kind: str
-    etag: str
     id: str
     snippet: ChannelSnippet
     contentDetails: ChannelContentDetails
 
 
 class PageInfo(BaseDto):
-    totalResult: int
+    totalResults: int
     resultsPerPage: int
 
 
 class VideoResourceId(BaseDto):
-    kind: str
     videoId: str
 
 
 class PlaylistItemSnippet(BaseDto):
-    publishedAt: datetime
-    channelId: str
     title: str
     description: str
     thumbnails: ThumbnailDetails
-    channelTitle: str
-    playlistId: str
     position: int
     resourceId: VideoResourceId
 
 
 class PlaylistItem(BaseDto):
-    kind: str
-    etag: str
     id: str
     snippet: PlaylistItemSnippet
-    videoOwnerChannelTitle: str
-    videoOwnerChannelId: str
 
 
 class SubscriptionResourceId(BaseDto):
-    kind: str
     channelId: str
 
 
 class SubscriptionSnippet(BaseDto):
-    publishedAt: datetime
     title: str
     description: str
     resourceId: SubscriptionResourceId
-    channelId: str
     thumbnails: ThumbnailDetails
 
 
 class SubscriptionDetails(BaseDto):
-    kind: str
-    etag: str
     id: str
     snippet: SubscriptionSnippet
 
@@ -103,8 +78,6 @@ class SubscriptionDetails(BaseDto):
 # Responses
 class BaseResponse(BaseDto):
     """The base class for all HTTP responses from YouTube data v3"""
-    kind: str
-    etag: str
     nextPageToken: Optional[str] = None
     prevPageToken: Optional[str] = None
     pageInfo: Optional[PageInfo] = None

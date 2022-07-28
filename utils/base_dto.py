@@ -23,7 +23,7 @@ class BaseDto(BaseModel):
         """
         Generate a JSON representation of the model as bytes not as string compared to self.json(),
         """
-        data = self.dict()
+        data = self.dict(exclude_unset=True)
         if self.__custom_root_type__:
             data = data[ROOT_KEY]
 

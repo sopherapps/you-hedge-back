@@ -2,6 +2,7 @@ import json
 import os
 
 from flask import Flask
+from pydantic import ValidationError
 
 from services import website, auth, youtube
 from utils.exc import APIException
@@ -28,5 +29,9 @@ def create_app(config_filename: str = "config.json"):
     @app.errorhandler(APIException)
     def api_exception(e: APIException):
         return app.response_class(e.bjson(), status=e.status_code)
+
+    @app.errorhandler(ValidationError)
+    def validation_error(e: ValidationError):
+        return app.response_class(e.json(), status=500)
 
     return app
