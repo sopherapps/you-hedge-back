@@ -91,7 +91,7 @@ class TestYoutube(TestCase):
         response = self.client.get("/youtube/subscriptions", headers={"X-YouHedge-Token": access_token})
         mock_get.assert_called_with(expected_url, headers=expected_headers)
         self.assertEqual(200, response.status_code)
-        self.assertEqual(mock_response, response.json())
+        self.assertEqual(mock_response, response.json)
 
     @patch("requests.get")
     def test_get_channel_details(self, mock_get: MagicMock):
@@ -154,7 +154,7 @@ class TestYoutube(TestCase):
         response = self.client.get(f"/youtube/channels/{channel_id}", headers={"X-YouHedge-Token": access_token})
         mock_get.assert_called_with(expected_url, headers=expected_headers)
         self.assertEqual(200, response.status_code)
-        self.assertEqual(mock_response["items"][0], response.json())
+        self.assertEqual(mock_response["items"][0], response.json)
 
     @patch("requests.get")
     def test_get_playlist_videos(self, mock_get: MagicMock):
@@ -250,7 +250,7 @@ class TestYoutube(TestCase):
         response = self.client.get(f"/youtube/playlist-items/{playlist_id}", headers={"X-YouHedge-Token": access_token})
         mock_get.assert_called_with(expected_url, headers=expected_headers)
         self.assertEqual(200, response.status_code)
-        self.assertEqual(mock_response, response.json())
+        self.assertEqual(mock_response, response.json)
 
 
 if __name__ == '__main__':

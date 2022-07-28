@@ -19,7 +19,7 @@ class BaseDto(BaseModel):
         """Jsonifies the DTO to be returned in a Flask view"""
         return app.response_class(self.bjson(), mimetype=app.config["JSONIFY_MIMETYPE"])
 
-    def bjson(self) -> str:
+    def bjson(self) -> bytes:
         """
         Generate a JSON representation of the model as bytes not as string compared to self.json(),
         """
@@ -27,4 +27,4 @@ class BaseDto(BaseModel):
         if self.__custom_root_type__:
             data = data[ROOT_KEY]
 
-        return self.__config__.orjson.dumps(data, default=self.__json_encoder__)
+        return orjson.dumps(data, default=self.__json_encoder__)

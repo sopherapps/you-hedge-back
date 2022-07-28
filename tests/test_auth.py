@@ -36,7 +36,7 @@ class TestAuth(TestCase):
         response = self.client.post("/auth/tv", json={})
         mock_post.assert_called_with(expected_url, headers=expected_headers, data=expected_data)
         self.assertEqual(200, response.status_code)
-        self.assertEqual(mock_login_details, response.json())
+        self.assertEqual(mock_login_details, response.json)
 
     @patch("requests.post")
     def test_check_tv_login_status(self, mock_post: MagicMock):
@@ -76,7 +76,7 @@ class TestAuth(TestCase):
 
         mock_post.assert_has_calls(calls=calls)
         self.assertEqual(200, response.status_code)
-        self.assertEqual(mock_login_status, response.json())
+        self.assertEqual(mock_login_status, response.json)
 
     @patch("requests.post")
     def test_refresh_token(self, mock_post: MagicMock):
@@ -101,7 +101,7 @@ class TestAuth(TestCase):
         response = self.client.post("/auth/refresh-token", json={"refresh_token": refresh_token})
         mock_post.assert_called_with(expected_url, headers=expected_headers, data=expected_data)
         self.assertEqual(200, response.status_code)
-        self.assertEqual(mock_refresh_token_response, response.json())
+        self.assertEqual(mock_refresh_token_response, response.json)
 
 
 if __name__ == '__main__':

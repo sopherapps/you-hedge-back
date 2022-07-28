@@ -4,6 +4,7 @@ import os
 from flask import Flask
 
 from services import website, auth, youtube
+from utils.exc import APIException
 
 _SERVICE_FOLDER = os.path.dirname(__file__)
 _ROOT_FOLDER = os.path.dirname(_SERVICE_FOLDER)
@@ -23,5 +24,9 @@ def create_app(config_filename: str = "config.json"):
     app.register_blueprint(website.bp)
     app.register_blueprint(auth.bp)
     app.register_blueprint(youtube.bp)
+
+    @app.errorhandler(APIException)
+    def api_exception(e: APIException):
+        return app.response_class(e.bjson(), status=e.status_code)
 
     return app

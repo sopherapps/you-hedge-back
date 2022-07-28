@@ -14,7 +14,8 @@ def tv_login():
     Initializes logging in via TV, returning a verification link
     and a User code for user to login with
     """
-    response = client.initialize_tv_login()
+    response = client.initialize_tv_login(
+        client_id=current_app.config["GOOGLE_CLIENT_ID"])
     return response.jsonify(current_app)
 
 

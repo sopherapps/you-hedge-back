@@ -1,11 +1,12 @@
 """Module containing utility functions concerned with views app"""
 import functools
-from typing import Callable, Type
+from typing import Type
 
 from flask import request
 from pydantic import ValidationError
 
 from utils.base_dto import BaseDto
+from utils.exc import APIException
 
 
 def auth_token_required(view):
@@ -14,7 +15,7 @@ def auth_token_required(view):
     def wrapped_view(**kwargs):
         access_token = request.headers.get("X-YouHedge-Token", None)
         if access_token is None:
-            return {"error": "Missing 'X-YouHedge-Token' header"}, 401
+            raise APIException(message="Missing 'X-YouHedge-Token' header", status_code=401)
 
         return view(**kwargs, access_token=access_token)
 
@@ -30,7 +31,7 @@ def body_required(request_model: Type[BaseDto]):
             try:
                 body = request_model.validate(body)
             except ValidationError:
-                return {"error": "malformed body"}, 400
+                raise APIException(message="malformed body", status_code=400)
 
             return view(**kwargs, body=body)
 
