@@ -276,7 +276,7 @@ class TestYoutube(TestCase):
 
     @patch("requests.get")
     def test_cached_get_channel_details(self, mock_get: MagicMock):
-        """Should return the ChannelDetailsResponse response after querying the YouTube data v3 endpoint"""
+        """Should return the cached ChannelDetailsResponse response for the given request if TTL is not yet exceeded."""
         access_token = "some dummy stuff"
         other_access_token = "wooohooo"
         channel_id = "a random channel id"
@@ -510,6 +510,139 @@ class TestYoutube(TestCase):
         mock_get.assert_called_with(expected_url, headers=expected_headers)
         self.assertEqual(200, response.status_code)
         self.assertEqual(expected_response, response.json)
+
+    @patch("requests.get")
+    def test_cached_get_playlist_videos(self, mock_get: MagicMock):
+        """Should return the cached PlaylistItemListResponse response for the given request if TTL is not yet exceeded"""
+        access_token = "some dummy stuff"
+        other_access_token = "wooohooo"
+        playlist_id = "a random playlist id"
+        other_playlist_id = "a random playls id"
+        first_mock_response = {
+            "kind": "youtube#playlistItemListResponse",
+            "etag": "kshdyeiwuew",
+            "nextPageToken": "aajhdaui",
+            "items": [
+                {
+                    "kind": "youtube#playlistItem",
+                    "etag": "aiuewewhjew",
+                    "id": "OIUYUOhhldauiuwew",
+                    "snippet": {
+                        "publishedAt": "2022-07-27T18:04:50Z",
+                        "channelId": "IUUAHsdaa",
+                        "title": "eywuyewew",
+                        "description": "Woohoo",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/jkds/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/skfjs/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/sfkjsfs/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            }
+                        },
+                        "channelTitle": "yupapisad",
+                        "playlistId": "adkjada",
+                        "position": 0,
+                        "resourceId": {
+                            "kind": "youtube#video",
+                            "videoId": "akjdajsu"
+                        },
+                        "videoOwnerChannelTitle": "yudaoad",
+                        "videoOwnerChannelId": "adajhsdad"
+                    }
+                }
+            ]
+        }
+        second_mock_response = {
+            "kind": "youtube#playlistItemListResponse",
+            "etag": "kshdyeiwuew",
+            "nextPageToken": "jahjye",
+            "items": [
+                {
+                    "kind": "youtube#playlistItem",
+                    "etag": "kjaj;uyr",
+                    "id": "adjkalusdaiuda",
+                    "snippet": {
+                        "publishedAt": "2022-07-24T11:49:06Z",
+                        "channelId": "sakjdkaluis",
+                        "title": "adyuaywejhwhe",
+                        "description": "kaue6w",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/jhsd/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/jksjdhj/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/jsdhs/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            }
+                        },
+                        "channelTitle": "yuyewew",
+                        "playlistId": "skdjss",
+                        "position": 1,
+                        "resourceId": {
+                            "kind": "youtube#video",
+                            "videoId": "kjsjdjkshda"
+                        },
+                        "videoOwnerChannelTitle": "iywuewe",
+                        "videoOwnerChannelId": "ajhdakhjsad"
+                    }
+                },
+            ]
+        }
+        expected_old_response = PlaylistItemListResponse(**first_mock_response).dict(exclude_unset=True)
+        expected_updated_response = PlaylistItemListResponse(**second_mock_response).dict(exclude_unset=True)
+        expected_headers = {"Accept": "application/json", "Authorization": f"Bearer {access_token}"}
+        expected_updated_headers = {"Accept": "application/json", "Authorization": f"Bearer {other_access_token}"}
+        expected_url = f"https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId={playlist_id}&key=TEST_GOOGLE_API_KEY"
+        expected_updated_url = f"https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId={other_playlist_id}&key=TEST_GOOGLE_API_KEY"
+
+        mock_get.return_value = MockResponse(data=first_mock_response, status_code=200)
+        self.client.get(f"/youtube/playlist-items/{playlist_id}", headers={"X-YouHedge-Token": access_token})
+
+        # change the mock response
+        mock_get.return_value = MockResponse(data=second_mock_response, status_code=200)
+
+        # change headers and playlist id and thus skip the cache
+        new_headers_response = self.client.get(f"/youtube/playlist-items/{other_playlist_id}",
+                                               headers={"X-YouHedge-Token": other_access_token})
+
+        # use old headers and thus hit the cache
+        old_headers_response = self.client.get(f"/youtube/playlist-items/{playlist_id}",
+                                               headers={"X-YouHedge-Token": access_token})
+
+        # wait for TTL to elapse and try the query again
+        time.sleep(3)
+        old_headers_after_sleep_response = self.client.get(f"/youtube/playlist-items/{playlist_id}",
+                                                           headers={"X-YouHedge-Token": access_token})
+        calls = [
+            call(expected_url, headers=expected_headers),
+            call(expected_updated_url, headers=expected_updated_headers),
+            call(expected_url, headers=expected_headers),
+        ]
+        mock_get.assert_has_calls(calls=calls)
+        self.assertEqual(200, old_headers_response.status_code)
+        self.assertEqual(200, new_headers_response.status_code)
+        self.assertEqual(200, old_headers_after_sleep_response.status_code)
+        self.assertEqual(expected_updated_response, new_headers_response.json)
+        self.assertEqual(expected_old_response, old_headers_response.json)
+        self.assertEqual(expected_updated_response, old_headers_after_sleep_response.json)
 
 
 if __name__ == '__main__':
