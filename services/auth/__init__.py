@@ -28,7 +28,13 @@ def check_tv_login_status(device_id: str):
     passed as a query parameter to see the status of the login request
     """
     interval: int = request.args.get("interval", 5, int)
-    response = client.check_tv_login_status(device_id=device_id, interval=interval)
+    response = client.check_tv_login_status(
+        device_id=device_id,
+        interval=interval,
+        client_id=current_app.config["GOOGLE_CLIENT_ID"],
+        client_secret=current_app.config["GOOGLE_CLIENT_SECRET"],
+        timeout=current_app.config["HTTP_REQUEST_TIMEOUT"],
+    )
     return response.jsonify(current_app)
 
 

@@ -7,6 +7,7 @@ class MockResponse:
         self._data = data
         self._status_code = status_code
 
+    @property
     def ok(self) -> bool:
         return self._status_code < 400
 

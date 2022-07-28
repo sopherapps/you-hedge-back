@@ -48,7 +48,6 @@ class TestAuth(TestCase):
             "token_type": "Bearer",
             "expires_in": 3600,
             "refresh_token": "1/551G1yXUqgkDGnkfFk6ZbjMMMDIMxo3JFc8lY8CAR-Q",
-            "id_token": "eyJhbGciOiJSUzI..."
         }
         expected_headers = {"Content-Type": "application/x-www-form-urlencoded"}
         expected_url = "https://oauth2.googleapis.com/token"
@@ -62,16 +61,21 @@ class TestAuth(TestCase):
             {"error": "authorization_pending"},
             {"error": "authorization_pending"},
             {"error": "authorization_pending"},
-            expected_data
+            {**mock_login_status, "id_token": "eyJhbGciOiJSUzI..."}
         ]
         expected_responses_iter = (resp for resp in expected_responses)
 
         def mock_login_status_check(*args, **kwargs):
-            return MockResponse(data=next(expected_responses_iter), status_code=200)
+            status_code = 404
+            data = next(expected_responses_iter)
+            if data.get("error", None) is None:
+                status_code = 200
+
+            return MockResponse(data=data, status_code=status_code)
 
         mock_post.side_effect = mock_login_status_check
 
-        response = self.client.get(f"/tv/{device_code}", query_string={"interval": interval})
+        response = self.client.get(f"/auth/tv/{device_code}", query_string={"interval": interval})
         calls = [call(expected_url, headers=expected_headers, data=expected_data) for _ in expected_responses]
 
         mock_post.assert_has_calls(calls=calls)
