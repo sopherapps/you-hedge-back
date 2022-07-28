@@ -45,7 +45,7 @@ def check_tv_login_status(
     data = {
         "client_id": client_id,
         "client_secret": client_secret,
-        "device_code": device_id,
+        "code": device_id,
         "grant_type": "http://oauth.net/grant_type/device/1.0"
     }
     timeout = timedelta(seconds=timeout)
@@ -57,7 +57,8 @@ def check_tv_login_status(
             return LoginStatusResponse.validate(response.json())
         else:
             try:
-                error = response.json().get("error", None)
+                parsed_data = response.json()
+                error = parsed_data.get("error", None)
                 if error == 'slow_down':
                     interval *= 2
                 elif error == 'authorization_pending':

@@ -54,7 +54,7 @@ class TestAuth(TestCase):
         expected_data = {
             "client_id": "TEST_GOOGLE_CLIENT_ID",
             "client_secret": "TEST_GOOGLE_CLIENT_SECRET",
-            "device_code": device_code,
+            "code": device_code,
             "grant_type": "http://oauth.net/grant_type/device/1.0"
         }
         expected_responses = [
