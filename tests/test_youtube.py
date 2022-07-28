@@ -20,7 +20,7 @@ class TestYoutube(TestCase):
     @patch("requests.get")
     def test_get_subscriptions(self, mock_get: MagicMock):
         """Should return the SubscriptionListResponse response after querying the YouTube data v3 endpoint"""
-        access_token = "some dummy stuff"
+        access_token = "some dummy stuff-1"
         mock_response = {
             "kind": "youtube#SubscriptionListResponse",
             "etag": "Oqgkyuuyyb",
@@ -98,7 +98,7 @@ class TestYoutube(TestCase):
     @patch("requests.get")
     def test_cached_get_subscriptions(self, mock_get: MagicMock):
         """Should return the cached response as long as TTL is not exceeded"""
-        access_token = "some dummy stuff"
+        access_token = "some dummy stuff-2"
         other_access_token = "wooohooo"
         first_mock_response = {
             "kind": "youtube#SubscriptionListResponse",
@@ -214,7 +214,7 @@ class TestYoutube(TestCase):
     @patch("requests.get")
     def test_get_channel_details(self, mock_get: MagicMock):
         """Should return the ChannelDetailsResponse response after querying the YouTube data v3 endpoint"""
-        access_token = "some dummy stuff"
+        access_token = "some dummy stuff-1"
         channel_id = "a random channel id"
         mock_response = {
             "kind": "youtube#channelListResponse",
@@ -277,7 +277,7 @@ class TestYoutube(TestCase):
     @patch("requests.get")
     def test_cached_get_channel_details(self, mock_get: MagicMock):
         """Should return the cached ChannelDetailsResponse response for the given request if TTL is not yet exceeded."""
-        access_token = "some dummy stuff"
+        access_token = "some dummy stuff-2"
         other_access_token = "wooohooo"
         channel_id = "a random channel id"
         other_channel_id = "a random chaner id"
@@ -417,7 +417,7 @@ class TestYoutube(TestCase):
     @patch("requests.get")
     def test_get_playlist_videos(self, mock_get: MagicMock):
         """Should return the PlaylistItemListResponse response after querying the YouTube data v3 endpoint"""
-        access_token = "some dummy stuff"
+        access_token = "some dummy stuff-1"
         playlist_id = "a random playlist id"
         mock_response = {
             "kind": "youtube#playlistItemListResponse",
@@ -514,7 +514,7 @@ class TestYoutube(TestCase):
     @patch("requests.get")
     def test_cached_get_playlist_videos(self, mock_get: MagicMock):
         """Should return the cached PlaylistItemListResponse response for the given request if TTL is not yet exceeded"""
-        access_token = "some dummy stuff"
+        access_token = "some dummy stuff-2"
         other_access_token = "wooohooo"
         playlist_id = "a random playlist id"
         other_playlist_id = "a random playls id"
