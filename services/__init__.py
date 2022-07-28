@@ -6,6 +6,7 @@ from flask import Flask
 from pydantic import ValidationError
 
 from services import website, auth, youtube
+from utils.cache import Cache
 from utils.exc import APIException
 from utils.logging import initialize_logger
 
@@ -24,7 +25,10 @@ def create_app(config_filename: str = "config.json", should_log_err_to_file: boo
         template_folder=os.path.join(_SERVICE_FOLDER, "website", "templates"),
     )
     app.config.from_file(config_filename, load=json.load)
-    app.config.update({"ERROR_LOGGER": err_logger})
+    app.config.from_mapping({
+        "ERROR_LOGGER": err_logger,
+        "CACHE": Cache(ttl=app.config["CACHE_TTL_IN_SECONDS"]),
+    })
 
     app.register_blueprint(website.bp)
     app.register_blueprint(auth.bp)

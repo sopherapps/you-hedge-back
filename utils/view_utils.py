@@ -2,7 +2,7 @@
 import functools
 from typing import Type
 
-from flask import request
+from flask import request, current_app
 from pydantic import ValidationError
 
 from utils.base_dto import BaseDto
@@ -34,5 +34,16 @@ def body_required(request_model: Type[BaseDto]):
                 raise APIException(message="malformed body", status_code=400)
 
         return inner_view
+
+    return wrapped_view
+
+
+def cached(view):
+    """Ensures that the wrapped view hits the cache first before it tries the full request"""
+
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        cache = current_app.config["CACHE"]
+        return cache.get_view(view, **kwargs)
 
     return wrapped_view

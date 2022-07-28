@@ -1,13 +1,13 @@
 """Module containing tests for the youtube service"""
-
+import time
 from unittest import TestCase, main
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 
 from services import create_app
 from services.youtube.dtos import SubscriptionListResponse, ChannelDetails, PlaylistItemListResponse
 from utils.testing import MockResponse
 
-_app = create_app(config_filename="test.config.json", should_log_to_file=False)
+_app = create_app(config_filename="test.config.json", should_log_err_to_file=False)
 
 
 class TestYoutube(TestCase):
@@ -94,6 +94,110 @@ class TestYoutube(TestCase):
         mock_get.assert_called_with(expected_url, headers=expected_headers)
         self.assertEqual(200, response.status_code)
         self.assertEqual(expected_response, response.json)
+
+    @patch("requests.get")
+    def test_cached_get_subscriptions(self, mock_get: MagicMock):
+        """Should return the cached response as long as TTL is not exceeded"""
+        access_token = "some dummy stuff"
+        first_mock_response = {
+            "kind": "youtube#SubscriptionListResponse",
+            "etag": "Oqgkyuuyyb",
+            "nextPageToken": "yutth",
+            "pageInfo": {
+                "totalResults": 39,
+                "resultsPerPage": 5
+            },
+            "items": [
+                {
+                    "kind": "youtube#subscription",
+                    "etag": "iuyyuy",
+                    "id": "iuyuvghkg",
+                    "snippet": {
+                        "publishedAt": "2022-07-12T21:05:09.560563Z",
+                        "title": "Yoooo",
+                        "description": "Some stuff",
+                        "resourceId": {
+                            "kind": "youtube#channel",
+                            "channelId": "iuiuoaiuh"
+                        },
+                        "channelId": "ayueuwtwtehgj",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://yt3.ggpht.com/ytc/kk"
+                            },
+                            "medium": {
+                                "url": "https://yt3.ggpht.com/ytc/uueh"
+                            },
+                            "high": {
+                                "url": "https://yt3.ggpht.com/ytc/yteh"
+                            }
+                        }
+                    }
+                },
+            ],
+        }
+        second_mock_response = {
+            "kind": "youtube#SubscriptionListResponse",
+            "etag": "jksjds",
+            "nextPageToken": "tywtew",
+            "pageInfo": {
+                "totalResults": 60,
+                "resultsPerPage": 5
+            },
+            "items": [
+                {
+                    "kind": "youtube#subscription",
+                    "etag": "ayuadsa",
+                    "id": "aiow78237832bkja",
+                    "snippet": {
+                        "publishedAt": "2019-08-29T22:27:02.940163Z",
+                        "title": "Penicilin",
+                        "description": "",
+                        "resourceId": {
+                            "kind": "youtube#channel",
+                            "channelId": "Gundi"
+                        },
+                        "channelId": "Gigabipwe7983",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://yt3.ggpht.com/ytc/ye7"
+                            },
+                            "medium": {
+                                "url": "https://yt3.ggpht.com/ytc/yutew"
+                            },
+                            "high": {
+                                "url": "https://yt3.ggpht.com/ytc/uyyere"
+                            }
+                        }
+                    }
+                },
+            ],
+        }
+        expected_second_response = SubscriptionListResponse(**first_mock_response).dict(exclude_unset=True)
+        expected_third_response = SubscriptionListResponse(**second_mock_response).dict(exclude_unset=True)
+        expected_headers = {"Accept": "application/json", "Authorization": f"Bearer {access_token}"}
+        expected_url = "https://youtube.googleapis.com/youtube/v3/subscriptions?part=snippet&mine=true&key=TEST_GOOGLE_API_KEY"
+
+        mock_get.return_value = MockResponse(data=first_mock_response, status_code=200)
+        self.client.get("/youtube/subscriptions", headers={"X-YouHedge-Token": access_token})
+
+        # change the mock response
+        mock_get.return_value = MockResponse(data=second_mock_response, status_code=200)
+        second_response = self.client.get("/youtube/subscriptions", headers={"X-YouHedge-Token": access_token})
+
+        # wait for TTL to elapse and try the query again
+        time.sleep(3)
+        third_response = self.client.get("/youtube/subscriptions", headers={"X-YouHedge-Token": access_token})
+
+        calls = [
+            call(expected_url, headers=expected_headers),
+            call(expected_url, headers=expected_headers),
+        ]
+        mock_get.assert_has_calls(calls=calls)
+        self.assertEqual(200, second_response.status_code)
+        self.assertEqual(200, third_response.status_code)
+        self.assertEqual(expected_second_response, second_response.json)
+        self.assertEqual(expected_third_response, third_response.json)
 
     @patch("requests.get")
     def test_get_channel_details(self, mock_get: MagicMock):

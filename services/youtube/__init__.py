@@ -1,13 +1,14 @@
 """Module containing functionality for getting Youtube data"""
 from flask import Blueprint, request, current_app
 
-from utils.view_utils import auth_token_required
+from utils.view_utils import auth_token_required, cached
 from . import client
 
 bp = Blueprint("youtube", __name__, url_prefix="/youtube")
 
 
 @bp.get("/subscriptions")
+@cached
 @auth_token_required
 def get_subscriptions(access_token: str):
     """Returns the subscriptions belonging to the logged-in user"""
@@ -21,6 +22,7 @@ def get_subscriptions(access_token: str):
 
 
 @bp.get("/channels/<string:channel_id>")
+@cached
 @auth_token_required
 def get_channel_details(channel_id: str, access_token: str):
     """Responds with the details for the given channel"""
@@ -34,6 +36,7 @@ def get_channel_details(channel_id: str, access_token: str):
 
 
 @bp.get("/playlist-items/<string:playlist_id>")
+@cached
 @auth_token_required
 def get_playlist_videos(playlist_id: str, access_token: str):
     """
