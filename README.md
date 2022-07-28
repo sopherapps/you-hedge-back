@@ -12,6 +12,8 @@ querying of the Youtube API as well as hosts the privacy policy and the terms of
 
 ## Quick Start
 
+- To get to know what kind of requests the API can handler can be found in
+  the [API docs](https://documenter.getpostman.com/view/17998957/UzXPwGN8)
 - Ensure you have [Python v3.9+](https://www.python.org/downloads/release/python-390/) installed.
 - Clone the repo
 

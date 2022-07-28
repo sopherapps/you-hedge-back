@@ -4,12 +4,12 @@ COPY . /y_app
 
 WORKDIR /y_app
 
-RUN pip install -r requirements
+RUN pip install -r requirements.txt
 
 CMD uwsgi --master \
   --workers 4 \
   --gevent 2000 \
-  --protocol http \
+  --protocol uwsgi \
   --socket 0.0.0.0:8000 \
   --module main:app
 # uwsgi protocol is used with an nginx reverse proxy
