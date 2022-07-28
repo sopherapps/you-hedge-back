@@ -10,7 +10,7 @@ from utils.cache import Cache
 from utils.exc import APIException
 from utils.logging import initialize_logger
 
-_SERVICE_FOLDER = os.path.dirname(__file__)
+_SERVICE_FOLDER = os.path.dirname(os.path.abspath(__file__))
 _ROOT_FOLDER = os.path.dirname(_SERVICE_FOLDER)
 
 

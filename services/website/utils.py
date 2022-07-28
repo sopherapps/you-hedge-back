@@ -3,7 +3,7 @@ import os.path
 
 import markdown
 
-_MARKDOWN_FOLDER = os.path.join(os.path.dirname(__file__), "markdown")
+_MARKDOWN_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "markdown")
 
 
 def render_markdown(filename: str) -> str:
