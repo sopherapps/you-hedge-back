@@ -3,6 +3,7 @@ import os
 from logging import Logger
 
 from flask import Flask
+from flask_cors import CORS
 from pydantic import ValidationError
 
 from services import website, auth, youtube
@@ -29,6 +30,7 @@ def create_app(config_filename: str = "config.json", should_log_err_to_file: boo
         "ERROR_LOGGER": err_logger,
         "CACHE": Cache(ttl=app.config["CACHE_TTL_IN_SECONDS"]),
     })
+    CORS(app)
 
     app.register_blueprint(website.bp)
     app.register_blueprint(auth.bp)
