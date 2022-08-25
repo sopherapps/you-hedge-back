@@ -2,6 +2,7 @@
 
 This is the back end of the YouHedge app that handles authentication of the client apps,
 querying of the Youtube API as well as hosts the privacy policy and the terms of service documents.
+The front end can be found at [https://github.com/sopherapps/you-hedge](https://github.com/sopherapps/you-hedge).
 
 ## Dependencies
 
