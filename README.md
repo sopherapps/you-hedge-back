@@ -93,6 +93,7 @@ server {
     location / {
        include uwsgi_params;
        uwsgi_pass uwsgi://127.0.0.1:8000;
+       # these increased timeouts are for the sake of long-polling for google authentication status
        uwsgi_read_timeout 300s;
        proxy_read_timeout 300s;
        proxy_connect_timeout 300s;
@@ -145,7 +146,7 @@ python -m unittest
 
 ### Constraints
 
-- Flask must be used. (This is part of an assessment)
+- Flask must be used.
 - Flask however is a synchronous framework.
 - Youtube API has daily quotas of around 10000
 
