@@ -53,6 +53,53 @@ uwsgi --master \
 
 - Open your browser at [http://localhost:8000](http://localhost:8000)
 
+## In Production
+
+- You can run the app as a systemd service and expose it via an Nginx reverse proxy.
+- The service file (e.g. /etc/systemd/system/youhedge.service) can look like:
+
+```
+[Unit]
+Description=youhedge backend uwsgi daemon
+After=network.target
+
+[Service]
+User=<your-user>
+Group=www-data
+WorkingDirectory=/path-to-your-projects-folder/you-hedge-back
+ExecStart=/path-to-your-projects-folder/you-hedge-back/env/bin/uwsgi --master \
+          --workers 4 \
+          --gevent 2000 \
+          --protocol uwsgi \
+          --socket 127.0.0.1:8000 \
+          --module main:app
+
+[Install]
+WantedBy=multi-user.target
+```
+
+- Be sure to add the following config in the Nginx server config (e.g. /etc/nginx/sites-available/youhedge_api) for this app.
+
+```
+server {
+    server_name your-domain; # e.g. server_name example.com
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+       alias /path-to-your-projects-folder/you-hedge-back/services/website/static/;
+    }
+
+    location / {
+       include uwsgi_params;
+       uwsgi_pass uwsgi://127.0.0.1:8000;
+       uwsgi_read_timeout 300s;
+       proxy_read_timeout 300s;
+       proxy_connect_timeout 300s;
+       proxy_send_timeout 300s;
+    }
+}
+```
+
 ## Running tests
 
 - Ensure you have [Python v3.9+](https://www.python.org/downloads/release/python-390/) installed.
